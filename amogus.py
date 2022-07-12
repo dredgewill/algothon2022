@@ -5,23 +5,31 @@ from scipy import stats as st
 
 nInst=100
 currentPos = np.zeros(nInst)
+grate = 0.01
+grate_zscore_multi = 0.2
+PosMulti = 12
+GrowthRangeMax = 3
+HISTSIZE = GrowthRangeMax + 1
 
 def getMyPosition (prcSoFar):
     global currentPos
-    if prcSoFar[0].size >= 5:
+    if prcSoFar[0].size >= 101:
         for x in range(100):
             growth = []
             for i in range(1,5):
                 growth.append(prcSoFar[x][-i]/prcSoFar[x][-i-1]-1)
-            if abs(statistics.mean(growth)) > 0.01 and statistics.stdev(growth) < 0.005:
+            if abs(statistics.mean(growth)) > grate and statistics.stdev(growth) < 0.005:
                 currentPos[x] = statistics.mean(growth) * 100000
-    if 0:
-        for x in range(100):
-            if prcSoFar[0].size < 30:
-                return currentPos
-            currentPos[x] = st.zscore(prcSoFar[x])[-1]
-            if np.isnan(currentPos[x] or currentPos[x] < 3):
-                currentPos[x] = 0
-            else:
-                currentPos[x] = round(currentPos[x]*100)
+    if prcSoFar[0].size <= HISTSIZE:
+        return currentPos
+    for x in range(100):
+        zdev = st.zscore(prcSoFar[x])[-1]
+        if np.isnan(zdev):
+            currentPos[x] = 0
+        else:
+            growth = []
+            for i in range(1,GrowthRangeMax):
+                growth.append(prcSoFar[x][-i]/prcSoFar[x][-i-1]-1)
+            if abs(statistics.mean(growth)) > grate and statistics.stdev(growth) < grate * grate_zscore_multi:
+                currentPos[x] = round(statistics.mean(growth) * 100 * PosMulti * abs(zdev))
     return currentPos
