@@ -10,9 +10,11 @@ grate_zscore_multi = 0.2
 PosMulti = 12
 GrowthRangeMax = 3
 HISTSIZE = GrowthRangeMax + 1
+zscore_min = 1.5
 
 def getMyPosition (prcSoFar):
     global currentPos
+    """
     if prcSoFar[0].size >= 101:
         for x in range(100):
             growth = []
@@ -30,6 +32,8 @@ def getMyPosition (prcSoFar):
             growth = []
             for i in range(1,GrowthRangeMax):
                 growth.append(prcSoFar[x][-i]/prcSoFar[x][-i-1]-1)
-            if abs(statistics.mean(growth)) > grate and statistics.stdev(growth) < grate * grate_zscore_multi:
-                currentPos[x] = round(statistics.mean(growth) * 100 * PosMulti * abs(zdev))
-    return currentPos
+            if statistics.stdev(growth) < grate * grate_zscore_multi and abs(zdev) > zscore_min:
+                if (abs(statistics.mean(growth)) > grate and np.sign(zdev) == np.sign(statistics.mean(growth))):
+                    currentPos[x] = round(statistics.mean(growth) * 100 * PosMulti * abs(zdev))
+    """
+    return [-10000]*100
